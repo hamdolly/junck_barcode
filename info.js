@@ -3,13 +3,32 @@ import bcrypt from "bcrypt"
 import multer from "multer"
 import path from 'path'
 
-// var p = value => console.log(value)
-
 export const pool = mysql.createPool({
-    host: "localhost",
-    user: "root",
-    password: "",
-    database: "scrap_barcode"
+
+    // host: 'localhost',
+    // user: 'root',
+    // password: '',
+    // database: 'scrap_barcode'
+
+    host: 'sql8.freesqldatabase.com',
+    port: 3306,
+    user: 'sql8725638',
+    password: 'XULScSbY72',
+    database: 'sql8725638'
+
+    //Hostinger
+    // host: '153.92.211.98',
+    // port: 3306,
+    // user: 'hamadolly_first',
+    // password: '5AjkAT160',
+    // database: 'hamadolly_scrap_barcode'
+
+    //Sheap name
+    // host: "127.0.0.1",
+    // port: 3306,
+    // user: "hamaaxil_ahamhmo",
+    // database: "hamaaxil_scrap_barcode",
+    // password: "Aa544112969544112969",
 }).promise()
 
 const storage = multer.diskStorage({
@@ -25,7 +44,7 @@ const storage = multer.diskStorage({
 export const upload = multer({ storage: storage })
 
 export const setImageInfo = async (image, note, section_ID, user_ID) => {
-    await pool.query(`INSERT INTO barcode_image (image, note, section_No, user_No) VALUES ('${image}', '${note}', ${section_ID}, ${user_ID})`)//, [`${image}`, `${note}`, `${section_ID}`, `${user_ID}`])
+    await pool.query(`INSERT INTO barcode_image (image, note, section_No, user_No) VALUES ('${image}', '${note}', ${section_ID}, ${user_ID})`)
 }
 
 export const checkUserAndSection = async (user_ID, section_ID) => {
@@ -71,6 +90,9 @@ export const checkSection = async description => {
 
 export const checkLoginInfo = async (e_No, password) => {
     var checking = true
+    await pool.query(`
+    SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'
+    `)
     var [login_info] = await pool.query(`SELECT *, COUNT(*) AS rs FROM login WHERE e_No = ${e_No}`)
     if (login_info[0].rs == 1) {
         var checkPassword = await bcrypt.compare(password, login_info[0].password)
@@ -170,10 +192,8 @@ export const updatePassword = async (e_No, nowPassword) => {
     return;
 }
 
-export const resetPassword = async (e_No) =>{
+export const resetPassword = async (e_No) => {
     var hashed = await bcrypt.hash("123", 13)
-    // var [user_info] = await pool.query(`SELECT * FROM user WHERE ID = ?`, [value])
-    // var [login_info] = await pool.query(`SELECT * FROM login WHERE ID = ?`, [user_info[0].login_No.toString()])
     var sql = `UPDATE login SET password = '${hashed}' WHERE e_No = ${e_No}`
     await pool.query(sql)
     return;
@@ -198,19 +218,6 @@ export const returnImage = async (ID) => {
 export const updateImageNote = async (image_ID, new_note) => {
     await pool.query(`UPDATE barcode_image SET note = '${new_note}' WHERE ID = ${image_ID}`)
 }
-
-// export const getUsers = async (condition = 'none', value = 'none') => {
-//     var send;
-//     switch (condition) {
-//         case 'none':
-//             send = userInfo()
-//             break;
-//     }
-//     condition = "";
-//     value = "";
-
-//     return send
-// }
 
 const userInfo = async (condition = 'none', value = 'none') => {
     var sql = ["SELECT * FROM user WHERE BLOCK = 0", `SELECT * FROM user WHERE ${condition} = '${value}' AND BLOCK = 0`]
@@ -293,7 +300,7 @@ const images = async () => {
             {
                 "ID": `${images[i].ID}`,
                 "image": `${images[i].image}`,
-                "note": `${images[1].note}`,
+                "note": `${images[i].note}`,
                 "user_ID": `${images[i].user_No.toString()}`,
                 "section_ID": `${images[i].section_No.toString()}`,
                 "section_name": `${section[0].description}`,

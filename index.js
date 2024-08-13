@@ -231,8 +231,13 @@ app.post('/update/image/note', async (req, res) => {
 
 
 app.get('/users', async (req, res) => {
-    var data = await info.getUsers()
-    data < 1 ? res.status(400).send("No user found!") : res.status(200).send(data)
+
+    try {
+        var data = await info.getUsers()
+        data < 1 ? res.status(400).send("No user found!") : res.status(200).send(data)
+    } catch (err) {
+        res.status(500).send({ success: 0, message: err.message })
+    }
 })
 
 app.get('/user/ID/:ID', async (req, res) => {
@@ -371,4 +376,4 @@ app.get('/section/description/:text', async (req, res) => {
 
 
 
-app.listen(4432, () => console.log("Started a port 4432"))
+app.listen(4432 || process.env.PORT, () => console.log("Started a port 4432"))
